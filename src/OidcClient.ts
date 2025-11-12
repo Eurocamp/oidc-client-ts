@@ -23,6 +23,7 @@ import { ErrorDPoPNonce } from "./errors/ErrorDPoPNonce";
  */
 export interface CreateSigninRequestArgs
     extends Omit<SigninRequestCreateArgs, "url" | "authority" | "client_id" | "redirect_uri" | "response_type" | "scope" | "state_data"> {
+    url?: string;
     redirect_uri?: string;
     response_type?: string;
     scope?: string;
@@ -93,6 +94,7 @@ export class OidcClient {
     }
 
     public async createSigninRequest({
+        url,
         state,
         request,
         request_uri,
@@ -123,7 +125,9 @@ export class OidcClient {
             throw new Error("Only the Authorization Code flow (with PKCE) is supported");
         }
 
-        const url = await this.metadataService.getAuthorizationEndpoint();
+        if (!url) {
+            url = await this.metadataService.getAuthorizationEndpoint();
+        }
         logger.debug("Received authorization endpoint", url);
 
         const signinRequest = await SigninRequest.create({
